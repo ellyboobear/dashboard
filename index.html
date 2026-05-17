@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personal Dashboard</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  --bg:     #07131d;
+  --bg2:    rgba(7,28,42,0.58);
+  --bg3:    rgba(16,45,64,0.62);
+  --border: rgba(196,235,255,0.14);
+  --bord2:  rgba(196,235,255,0.28);
+  --text:   #f1f8fb;
+  --muted:  rgba(218,239,247,0.58);
+  --accent: #7ee3ff;
+  --acc2:   rgba(126,227,255,0.18);
+  --danger: #c97a7a;
+  --gold:   #d4af37;
+  --r:      8px;
+  --rsm:    5px;
+  --font:   "Segoe UI Variable","Segoe UI",Inter,Aptos,Roboto,Arial,sans-serif;
+  --serif:  Georgia,serif;
+}
+
+html,body { height:100%; overflow:hidden; background:var(--bg); color:var(--text); font-family:var(--font); font-weight:400; }
+
+body::before {
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    linear-gradient(180deg,rgba(4,18,28,.28),rgba(4,13,20,.82)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1800 1100'%3E%3Cdefs%3E%3ClinearGradient id='sky' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop stop-color='%239fd2df'/%3E%3Cstop offset='.48' stop-color='%232e6f82'/%3E%3Cstop offset='1' stop-color='%23061b28'/%3E%3C/linearGradient%3E%3CradialGradient id='sun' cx='55%25' cy='55%25' r='52%25'%3E%3Cstop stop-color='%23ffbf7a' stop-opacity='.75'/%3E%3Cstop offset='.48' stop-color='%23e8715f' stop-opacity='.18'/%3E%3Cstop offset='1' stop-color='%23000000' stop-opacity='0'/%3E%3C/radialGradient%3E%3ClinearGradient id='snow' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop stop-color='%23ffffff'/%3E%3Cstop offset='1' stop-color='%2395d6e8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1800' height='1100' fill='url(%23sky)'/%3E%3Crect width='1800' height='1100' fill='url(%23sun)' opacity='.75'/%3E%3Cg opacity='.42'%3E%3Ccircle cx='130' cy='84' r='1.5' fill='white'/%3E%3Ccircle cx='390' cy='130' r='1.2' fill='white'/%3E%3Ccircle cx='730' cy='78' r='1.5' fill='white'/%3E%3Ccircle cx='1030' cy='124' r='1.3' fill='white'/%3E%3Ccircle cx='1460' cy='78' r='1.5' fill='white'/%3E%3C/g%3E%3Cpath d='M0 710L205 450L330 650L520 335L790 690L955 455L1140 710L1355 365L1655 720L1800 530V1100H0Z' fill='%23082331'/%3E%3Cpath d='M205 450l60 92l-76-32l-62 74zM520 335l95 142l-114-48l-94 112zM955 455l70 90l-84-35l-70 84zM1355 365l116 150l-136-55l-108 128zM1800 530v165l-118-48z' fill='url(%23snow)' opacity='.86'/%3E%3Cpath d='M0 760c240-68 410-52 600-18c280 50 450-34 650-14c210 21 346 96 550 24v348H0z' fill='%23061420' opacity='.76'/%3E%3Cpath d='M0 792c255-75 445-54 620-20c230 44 420-42 628-19c205 22 352 82 552 18' fill='none' stroke='%2389ddea' stroke-opacity='.28' stroke-width='3'/%3E%3C/svg%3E");
+  background-size:cover; background-position:center;
+}
+body::after { content:''; position:fixed; inset:0; z-index:0; pointer-events:none; background:linear-gradient(90deg,rgba(2,9,15,.7),rgba(7,28,42,.36),rgba(2,9,15,.78)); }
+
+#app {
+  position:relative; z-index:1;
+  display:grid;
+  grid-template-columns: 1fr 320px;
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas: "hd hd" "main side" "ft ft";
+  width:100vw;
+  height:100vh;
+  overflow:hidden;
+  background:rgba(5,24,37,.46);
+}
+
+#hd {
+  grid-area:hd;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 18px;
+  border-bottom:1px solid var(--border);
+  background:rgba(4,20,31,.44);
+  gap:12px;
+}
+
+.time { font-family:var(--font); font-size:clamp(42px,5vw,68px); font-weight:800; line-height:1; letter-spacing:-2px; min-width:210px; }
+.time .ampm { font-size:.32em; font-family:var(--font); color:var(--muted); vertical-align:.3em; margin-left:5px; letter-spacing:.08em; }
+
+.hd-right { display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
+.date-str { font-size:10px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); }
+.greeting { font-family:var(--font); font-style:normal; font-size:12px; color:var(--accent); font-weight:700; }
+
+.search-wrap { position:relative; flex:1; max-width:none; }
+.search-wrap svg { position:absolute; left:11px; top:50%; transform:translateY(-50%); opacity:.3; width:14px; height:14px; pointer-events:none; }
+#search { width:100%; height:32px; background:rgba(2,17,29,.54); border:1px solid var(--bord2); border-radius:var(--rsm); padding:0 12px 0 34px; color:var(--text); font-family:var(--font); font-size:12px; outline:none; transition:border-color .2s; }
+#search::placeholder { color:var(--muted); }
+#search:focus { border-color:var(--accent); box-shadow:0 0 0 2px rgba(126,227,255,0.2); }
+
+#main {
+  grid-area:main;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding:10px;
+  overflow-y:auto;
+}
+
+#side {
+  grid-area:side;
+  display:flex; flex-direction:column;
+  gap:8px;
+  padding:10px 10px 10px 8px;
+  border-left:1px solid var(--border);
+  overflow-y:auto;
+}
+
+#ft {
+  grid-area:ft;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:7px 14px;
+  border-top:1px solid var(--border);
+  background:rgba(8,10,14,.3);
+}
+.ft-note { font-size:10px; color:var(--muted); letter-spacing:.06em; }
+.ft-btns { display:flex; gap:6px; }
+.util-btn { background:none; border:1px solid var(--border); border-radius:5px; color:var(--muted); font-size:10px; padding:4px 9px; cursor:pointer; font-family:var(--font); transition:border-color .2s,color .2s; }
+.util-btn:hover,.util-btn.active { border-color:var(--accent); color:var(--accent); }
+
+.widget {
+  background:linear-gradient(180deg,rgba(12,55,76,.64),rgba(5,22,35,.62));
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:9px 10px;
+  position:relative;
+  transition:border-color .18s, box-shadow .18s;
+  min-height:0;
+  box-shadow:inset 0 1px rgba(255,255,255,.08);
+  flex-shrink:0;
+}
+.widget.drag-over { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
+.widget.dragging { opacity:.4; }
+
+.widget-drag {
+  position:absolute; top:8px; right:28px;
+  width:16px; height:16px;
+  display:flex; flex-direction:column; justify-content:center; gap:3px;
+  cursor:grab; opacity:0; transition:opacity .15s;
+  padding:2px;
+}
+.widget:hover .widget-drag { opacity:.4; }
+.widget-drag:hover { opacity:.8 !important; }
+.widget-drag span { display:block; height:2px; background:var(--muted); border-radius:2px; }
+
+.widget-rm {
+  position:absolute; top:7px; right:8px;
+  background:none; border:none; color:var(--muted); font-size:13px;
+  cursor:pointer; opacity:0; transition:opacity .15s; padding:2px; line-height:1;
+}
+.widget:hover .widget-rm { opacity:.4; }
+.widget-rm:hover { opacity:1 !important; color:var(--danger); }
+
+.wlabel {
+  font-size:9px; letter-spacing:.18em; text-transform:uppercase; color:rgba(224,246,255,.65);
+  margin-bottom:7px; display:flex; align-items:center; justify-content:space-between;
+  font-weight:800;
+}
+
+.btn-sm { background:none; border:1px solid var(--border); border-radius:5px; color:var(--muted); font-size:10px; padding:5px 9px; cursor:pointer; font-family:var(--font); transition:border-color .2s,color .2s; white-space:nowrap; }
+.btn-sm:hover { border-color:var(--accent); color:var(--accent); }
+
+/* ── POMODORO ── */
+.timer-display { display:flex; flex-direction:column; align-items:center; gap:8px; }
+.timer-value { font-size:36px; font-weight:700; color:var(--accent); font-family:monospace; letter-spacing:2px; }
+.timer-label { font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); }
+.timer-btns { display:flex; gap:4px; margin-top:6px; }
+.timer-btn { background:rgba(126,227,255,.15); border:1px solid var(--accent); border-radius:4px; color:var(--accent); font-size:9px; padding:4px 8px; cursor:pointer; transition:all .2s; }
+.timer-btn:hover { background:rgba(126,227,255,.25); }
+
+/* ── BOOKMARKS ── */
+.bk-shelf { display:flex; flex-direction:column; gap:10px; }
+.bk-group-ttl { font-size:9px; letter-spacing:.14em; color:var(--muted); text-transform:uppercase; margin-bottom:5px; display:flex; align-items:center; justify-content:space-between; font-weight:800; }
+.bk-group-add { background:none; border:none; color:var(--accent); cursor:pointer; font-size:12px; opacity:.6; transition:opacity .2s; }
+.bk-group-add:hover { opacity:1; }
+.bk-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(64px,1fr)); gap:6px; }
+
+.bk {
+  display:flex; flex-direction:column; align-items:center; gap:4px;
+  padding:7px 5px 6px; border-radius:7px;
+  background:rgba(22,26,36,.7); border:1px solid var(--border);
+  cursor:pointer; transition:background .18s,border-color .18s,transform .12s;
+  position:relative; user-select:none; text-align:center;
+}
+.bk:hover { background:rgba(30,35,50,.9); border-color:var(--bord2); transform:translateY(-1px); }
+.bk-ico { width:28px; height:28px; border-radius:6px; overflow:hidden; display:flex; align-items:center; justify-content:center; background:rgba(30,35,50,.8); }
+.bk-ico img { width:20px; height:20px; display:block; }
+.bk-name { font-size:10px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; line-height:1.2; }
+.bk-del { position:absolute; top:3px; right:3px; background:none; border:none; color:var(--muted); font-size:12px; cursor:pointer; opacity:0; transition:opacity .15s; padding:1px; line-height:1; }
+.bk:hover .bk-del { opacity:.55; }
+.bk-del:hover { opacity:1!important; color:var(--danger); }
+
+/* ── MODAL ── */
+.modal-bg { display:none; position:fixed; inset:0; z-index:300; background:rgba(0,0,0,.65); align-items:center; justify-content:center; }
+.modal-bg.open { display:flex; }
+.modal { background:#12151e; border:1px solid var(--bord2); border-radius:var(--r); padding:24px; width:340px; display:flex; flex-direction:column; gap:12px; }
+.modal h3 { font-family:var(--serif); font-size:19px; font-weight:300; }
+.modal input { width:100%; background:rgba(22,26,36,.9); border:1px solid var(--border); border-radius:7px; padding:8px 12px; color:var(--text); font-family:var(--font); font-size:12px; outline:none; transition:border-color .2s; }
+.modal input:focus { border-color:var(--bord2); }
+.modal input::placeholder { color:var(--muted); }
+.btn-primary { background:var(--acc2); border:1px solid rgba(201,176,122,.4); border-radius:7px; color:var(--accent); font-size:12px; padding:7px 16px; cursor:pointer; font-family:var(--font); transition:background .2s; }
+.btn-primary:hover { background:rgba(201,176,122,.22); }
+.btn-cancel { background:none; border:1px solid var(--border); border-radius:7px; color:var(--muted); font-size:12px; padding:7px 16px; cursor:pointer; font-family:var(--font); }
+.btn-cancel:hover { border-color:var(--bord2); color:var(--text); }
+
+/* ── COMMAND PALETTE ── */
+.cmd-palette { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); z-index:400; background:#12151e; border:1px solid var(--bord2); border-radius:var(--r); width:90%; max-width:500px; box-shadow:0 20px 60px rgba(0,0,0,.8); }
+.cmd-palette.open { display:block; }
+.cmd-input { width:100%; background:transparent; border:none; outline:none; color:var(--text); font-family:var(--font); font-size:14px; padding:16px; border-bottom:1px solid var(--border); }
+.cmd-input::placeholder { color:var(--muted); }
+.cmd-list { max-height:300px; overflow-y:auto; }
+.cmd-item { padding:12px 16px; cursor:pointer; transition:background .12s; border-bottom:1px solid rgba(196,235,255,.05); }
+.cmd-item:hover { background:rgba(126,227,255,.1); }
+.cmd-item-title { font-size:12px; color:var(--text); font-weight:500; }
+.cmd-item-desc { font-size:10px; color:var(--muted); margin-top:2px; }
+
+.task-list { display:flex; flex-direction:column; gap:6px; margin-bottom:8px; }
+.task-row { display:flex; gap:8px; align-items:center; padding:6px; background:rgba(22,26,36,.5); border-radius:5px; }
+.task-row input[type="checkbox"] { cursor:pointer; }
+.task-row.done .task-inp { text-decoration:line-through; opacity:.5; }
+.task-inp { flex:1; background:transparent; border:none; outline:none; color:var(--text); font-family:var(--font); font-size:11px; }
+
+.quote-text { font-family:var(--serif); font-style:italic; font-size:12px; line-height:1.6; color:var(--muted); margin-bottom:8px; }
+.quote-author { font-size:9px; color:var(--accent); letter-spacing:.08em; }
+
+.focus-strip { display:flex; gap:8px; align-items:center; }
+.focus-lbl { font-size:9px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); font-weight:700; white-space:nowrap; }
+.focus-input { flex:1; background:rgba(22,26,36,.8); border:1px solid var(--border); border-radius:5px; padding:5px 8px; color:var(--text); font-family:var(--font); font-size:11px; outline:none; }
+.focus-input:focus { border-color:var(--bord2); }
+
+.notes-saved { font-size:9px; color:var(--accent); margin-top:4px; }
+
+/* ── MINI CALENDAR ── */
+.cal-wrap { user-select:none; }
+.cal-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.cal-nav-btn { background:none; border:none; color:var(--muted); font-size:16px; cursor:pointer; padding:0 4px; line-height:1; transition:color .15s; }
+.cal-nav-btn:hover { color:var(--accent); }
+.cal-month-label { font-size:11px; font-weight:700; color:var(--text); letter-spacing:.06em; }
+.cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+.cal-dow { font-size:8px; text-align:center; color:var(--muted); padding:2px 0 4px; letter-spacing:.06em; font-weight:700; }
+.cal-day {
+  font-size:10px; text-align:center; padding:4px 2px; border-radius:4px;
+  cursor:pointer; transition:background .12s, color .12s; color:var(--muted); position:relative;
+}
+.cal-day:hover { background:var(--acc2); color:var(--text); }
+.cal-day.today { background:var(--acc2); color:var(--accent); font-weight:700; }
+.cal-day.has-event::after { content:''; display:block; width:3px; height:3px; border-radius:50%; background:var(--gold); margin:1px auto 0; }
+.cal-day.other-month { opacity:.3; }
+.cal-day.selected { background:rgba(126,227,255,.3); color:var(--accent); font-weight:700; }
+.cal-open-btn { display:block; width:100%; margin-top:8px; text-align:center; text-decoration:none; }
+.cal-events { margin-top:8px; display:flex; flex-direction:column; gap:4px; }
+.cal-event-item { display:flex; gap:6px; align-items:center; padding:5px 7px; background:rgba(22,26,36,.6); border-radius:5px; border-left:2px solid var(--gold); }
+.cal-event-time { font-size:9px; color:var(--gold); white-space:nowrap; font-family:monospace; }
+.cal-event-title { font-size:10px; color:var(--text); flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cal-event-del { background:none; border:none; color:var(--muted); font-size:11px; cursor:pointer; opacity:0; transition:opacity .15s; padding:0 2px; }
+.cal-event-item:hover .cal-event-del { opacity:.6; }
+.cal-event-del:hover { color:var(--danger); opacity:1 !important; }
+.cal-add-row { display:flex; gap:4px; margin-top:6px; }
+.cal-add-inp { flex:1; background:rgba(22,26,36,.8); border:1px solid var(--border); border-radius:5px; padding:4px 7px; color:var(--text); font-family:var(--font); font-size:10px; outline:none; }
+.cal-add-inp:focus { border-color:var(--bord2); }
+.cal-add-inp::placeholder { color:var(--muted); }
+.cal-add-time { width:64px; }
+.cal-selected-label { font-size:9px; color:var(--muted); letter-spacing:.1em; text-transform:uppercase; margin-top:8px; margin-bottom:3px; }
+
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div id="hd">
+    <div class="time"><span id="clock-time">--:--</span><span class="ampm" id="clock-ampm">AM</span></div>
+    <div class="hd-right">
+      <div class="date-str" id="date-str"></div>
+      <div class="greeting" id="greeting"></div>
+    </div>
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" id="search" placeholder="Search the web... ( / to focus )"
+        onkeydown="if(event.key==='Enter'&&this.value.trim()){window.open('https://www.google.com/search?q='+encodeURIComponent(this.value.trim()),'_blank');this.value='';}">
+    </div>
+  </div>
+
+  <div id="main"></div>
+  <div id="side"></div>
+
+  <div id="ft">
+    <div class="ft-note">All data local · No tracking · No cloud · Drag widgets to reorder</div>
+    <div class="ft-btns">
+      <button class="util-btn" onclick="toggleWidgetTray()">⊞ Widgets</button>
+      <button class="util-btn" onclick="exportData()">📥 Export</button>
+      <button class="util-btn" onclick="importData()">📤 Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOOKMARK MODAL -->
+<div class="modal-bg" id="bookmark-modal">
+  <div class="modal">
+    <h3>Add Bookmark</h3>
+    <input type="text" id="bk-name" placeholder="Name">
+    <input type="text" id="bk-url" placeholder="https://example.com">
+    <input type="text" id="bk-group" placeholder="Group (e.g., Tools)">
+    <div style="display:flex; gap:8px;">
+      <button class="btn-primary" onclick="saveBookmark()">Save</button>
+      <button class="btn-cancel" onclick="closeBookmarkModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- COMMAND PALETTE -->
+<div class="cmd-palette" id="cmd-palette">
+  <input type="text" class="cmd-input" id="cmd-input" placeholder="Type a command...">
+  <div class="cmd-list" id="cmd-list"></div>
+</div>
+
+<script>
+const QUOTES = [
+  {text:"The only way to do great work is to love what you do.", author:"Steve Jobs"},
+  {text:"In the middle of every difficulty lies opportunity.", author:"Albert Einstein"},
+  {text:"It does not matter how slowly you go as long as you do not stop.", author:"Confucius"},
+  {text:"Life is what happens when you're busy making other plans.", author:"John Lennon"},
+  {text:"The future belongs to those who believe in the beauty of their dreams.", author:"Eleanor Roosevelt"},
+  {text:"It is during our darkest moments that we must focus to see the light.", author:"Aristotle"},
+  {text:"Spread love everywhere you go.", author:"Mother Teresa"},
+  {text:"When you reach the end of your rope, tie a knot in it and hang on.", author:"Franklin D. Roosevelt"},
+  {text:"Always remember that you are absolutely unique. Just like everyone else.", author:"Margaret Mead"},
+  {text:"Do not go where the path may lead; go where there is no path and leave a trail.", author:"Ralph Waldo Emerson"},
+];
+
+// ── BOOKMARKS DEFAULT ──
+const DEFAULT_BOOKMARKS = {
+  "Proton": [
+    { name: "Mail", url: "https://mail.proton.me", icon: "📧" },
+    { name: "Calendar", url: "https://calendar.proton.me", icon: "📅" },
+    { name: "Drive", url: "https://drive.proton.me", icon: "☁️" }
+  ],
+  "Tools": [
+    { name: "Claude", url: "https://claude.ai", icon: "🤖" },
+    { name: "GitHub", url: "https://github.com", icon: "🐙" }
+  ],
+  "Research": [
+    { name: "Zotero", url: "https://zotero.org", icon: "📚" },
+    { name: "Wikipedia", url: "https://wikipedia.org", icon: "📖" }
+  ]
+};
+
+// ── STATE ──
+// widgets list is the canonical order; side vs main is determined by SIDE_WIDGETS set
+const SIDE_WIDGETS = new Set(['quote','proton-calendar','deadlines','pomodoro','proton']);
+const ALL_WIDGETS  = ['focus','tasks','notes','bookmarks','quote','deadlines','pomodoro','proton','proton-calendar'];
+
+let dashState = {
+  widgets: ['focus','tasks','notes','bookmarks','deadlines','pomodoro','proton','quote','proton-calendar'],
+  timerState: { time: 1500, isRunning: false, isBreak: false },
+  bookmarks: DEFAULT_BOOKMARKS,
+  tasks: [],
+  notes: '',
+  deadlines: [],
+  focus: '',
+  calEvents: {},   // key: "YYYY-MM-DD", value: [{time, title}]
+  calView: null    // {year, month} currently viewed — null = current month
+};
+
+// live timer interval handle (never persisted)
+let _timerInterval = null;
+// calendar selected date (session only)
+let _calSelected = null;
+
+// ── LOAD / SAVE ──
+function loadState() {
+  try {
+    const saved = localStorage.getItem('dashState');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // merge so new keys always exist
+      dashState = Object.assign({}, dashState, parsed);
+      if (!dashState.calEvents) dashState.calEvents = {};
+      if (!dashState.timerState) dashState.timerState = { time:1500, isRunning:false, isBreak:false };
+      dashState.timerState.isRunning = false; // never restore a running timer
+    }
+  } catch(e) { console.error('loadState failed', e); }
+  render();
+}
+
+function saveState() {
+  const s = JSON.stringify(dashState);
+  localStorage.setItem('dashState', s);
+}
+
+// ── CLOCK ──
+function updateClock() {
+  const now = new Date();
+  const hr  = now.getHours();
+  const m   = String(now.getMinutes()).padStart(2,'0');
+  const displayH = hr % 12 || 12;
+  const ampm = hr >= 12 ? 'PM' : 'AM';
+  document.getElementById('clock-time').textContent = `${displayH}:${m}`;
+  document.getElementById('clock-ampm').textContent = ampm;
+  document.getElementById('date-str').textContent =
+    now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}).toUpperCase();
+  const greet = hr < 5 ? "Still up?" : hr < 12 ? "Good morning." : hr < 17 ? "Good afternoon." : hr < 21 ? "Good evening." : "Wind down well.";
+  document.getElementById('greeting').textContent = greet;
+}
+
+// ── POMODORO ──
+function updateTimerDisplay() {
+  const mins = Math.floor(dashState.timerState.time / 60);
+  const secs = dashState.timerState.time % 60;
+  const disp  = document.getElementById('timer-display');
+  const label = document.getElementById('timer-label');
+  const btn   = document.getElementById('timer-start');
+  if (disp)  disp.textContent  = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+  if (label) label.textContent = dashState.timerState.isBreak ? 'Break' : 'Focus';
+  if (btn)   btn.textContent   = dashState.timerState.isRunning ? 'Pause' : 'Start';
+}
+
+function toggleTimer() {
+  dashState.timerState.isRunning = !dashState.timerState.isRunning;
+  if (dashState.timerState.isRunning) {
+    _timerInterval = setInterval(() => {
+      dashState.timerState.time--;
+      if (dashState.timerState.time < 0) {
+        dashState.timerState.isBreak = !dashState.timerState.isBreak;
+        dashState.timerState.time = dashState.timerState.isBreak ? 300 : 1500;
+      }
+      updateTimerDisplay();
+      saveState();
+    }, 1000);
+  } else {
+    clearInterval(_timerInterval);
+    _timerInterval = null;
+  }
+  updateTimerDisplay();
+  saveState();
+}
+
+function resetTimer() {
+  clearInterval(_timerInterval);
+  _timerInterval = null;
+  dashState.timerState = { time:1500, isRunning:false, isBreak:false };
+  updateTimerDisplay();
+  saveState();
+}
+
+function skipTimer() {
+  dashState.timerState.isBreak = !dashState.timerState.isBreak;
+  dashState.timerState.time = dashState.timerState.isBreak ? 300 : 1500;
+  updateTimerDisplay();
+  saveState();
+}
+
+// ── TASK FUNCTIONS ──
+function toggleTask(i)       { dashState.tasks[i].done = !dashState.tasks[i].done; saveState(); render(); }
+function updateTask(i, text) { dashState.tasks[i].text = text; saveState(); }
+function deleteTask(i)       { dashState.tasks.splice(i,1); saveState(); render(); }
+
+// ── DEADLINE FUNCTIONS ──
+function updateDeadlineName(i, v) { dashState.deadlines[i].name = v; saveState(); }
+function updateDeadlineDate(i, v) { dashState.deadlines[i].date = v; saveState(); }
+function deleteDeadline(i)        { dashState.deadlines.splice(i,1); saveState(); render(); }
+
+// ── BOOKMARK FUNCTIONS ──
+function openBookmarkModal(group) {
+  document.getElementById('bookmark-modal').classList.add('open');
+  document.getElementById('bk-group').value = group;
+  document.getElementById('bk-name').value  = '';
+  document.getElementById('bk-url').value   = '';
+}
+function closeBookmarkModal() {
+  document.getElementById('bookmark-modal').classList.remove('open');
+}
+function saveBookmark() {
+  const name  = document.getElementById('bk-name').value.trim();
+  const url   = document.getElementById('bk-url').value.trim();
+  const group = document.getElementById('bk-group').value.trim();
+  if (!name || !url || !group) return;
+  if (!dashState.bookmarks[group]) dashState.bookmarks[group] = [];
+  dashState.bookmarks[group].push({name, url, icon:'🔗'});
+  saveState(); render(); closeBookmarkModal();
+}
+function deleteBookmark(e, group, i) {
+  e.preventDefault(); e.stopPropagation();
+  dashState.bookmarks[group].splice(i,1);
+  saveState(); render();
+}
+
+// ── CALENDAR FUNCTIONS ──
+function calDateKey(year, month, day) {
+  return `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+}
+function calTodayKey() {
+  const t = new Date();
+  return calDateKey(t.getFullYear(), t.getMonth(), t.getDate());
+}
+function calAddEvent(key) {
+  const titleEl = document.getElementById('cal-add-title');
+  const timeEl  = document.getElementById('cal-add-time');
+  const title   = titleEl ? titleEl.value.trim() : '';
+  const time    = timeEl  ? timeEl.value : '';
+  if (!title) return;
+  if (!dashState.calEvents[key]) dashState.calEvents[key] = [];
+  dashState.calEvents[key].push({time, title});
+  saveState();
+  renderCalendarWidget();
+}
+function calDeleteEvent(key, i) {
+  dashState.calEvents[key].splice(i,1);
+  if (!dashState.calEvents[key].length) delete dashState.calEvents[key];
+  saveState();
+  renderCalendarWidget();
+}
+
+function renderCalendarWidget() {
+  const wrap = document.getElementById('cal-inner');
+  if (!wrap) return;
+
+  const now = new Date();
+  const view = dashState.calView || { year: now.getFullYear(), month: now.getMonth() };
+  const todayKey = calTodayKey();
+  if (!_calSelected) _calSelected = todayKey;
+
+  const firstDay = new Date(view.year, view.month, 1).getDay();
+  const daysInMonth = new Date(view.year, view.month + 1, 0).getDate();
+  const daysInPrev  = new Date(view.year, view.month, 0).getDate();
+  const monthName = new Date(view.year, view.month).toLocaleDateString('en-US', {month:'long', year:'numeric'});
+
+  const dows = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+  let grid = `<div class="cal-grid">`;
+  dows.forEach(d => { grid += `<div class="cal-dow">${d}</div>`; });
+
+  // prev month padding
+  for (let i = firstDay - 1; i >= 0; i--) {
+    const day = daysInPrev - i;
+    const key = calDateKey(view.month === 0 ? view.year-1 : view.year, view.month === 0 ? 11 : view.month-1, day);
+    grid += `<div class="cal-day other-month${dashState.calEvents[key]?.length ? ' has-event':''}">${day}</div>`;
+  }
+
+  // current month
+  for (let d = 1; d <= daysInMonth; d++) {
+    const key = calDateKey(view.year, view.month, d);
+    let cls = 'cal-day';
+    if (key === todayKey) cls += ' today';
+    if (key === _calSelected) cls += ' selected';
+    if (dashState.calEvents[key]?.length) cls += ' has-event';
+    grid += `<div class="${cls}" onclick="calSelectDay('${key}')">${d}</div>`;
+  }
+
+  // next month padding
+  const total = firstDay + daysInMonth;
+  const remainder = total % 7 === 0 ? 0 : 7 - (total % 7);
+  for (let d = 1; d <= remainder; d++) {
+    const key = calDateKey(view.month === 11 ? view.year+1 : view.year, view.month === 11 ? 0 : view.month+1, d);
+    grid += `<div class="cal-day other-month${dashState.calEvents[key]?.length ? ' has-event':''}">${d}</div>`;
+  }
+  grid += `</div>`;
+
+  // selected day events
+  const selEvents = dashState.calEvents[_calSelected] || [];
+  const selDate   = new Date(_calSelected + 'T00:00:00');
+  const selLabel  = selDate.toLocaleDateString('en-US',{weekday:'short', month:'short', day:'numeric'});
+
+  let eventsHtml = `<div class="cal-selected-label">${selLabel}</div>`;
+  if (selEvents.length) {
+    eventsHtml += `<div class="cal-events">`;
+    selEvents.forEach((ev, i) => {
+      eventsHtml += `<div class="cal-event-item">
+        <span class="cal-event-time">${ev.time || '—'}</span>
+        <span class="cal-event-title">${ev.title}</span>
+        <button class="cal-event-del" onclick="calDeleteEvent('${_calSelected}',${i})">✕</button>
+      </div>`;
+    });
+    eventsHtml += `</div>`;
+  } else {
+    eventsHtml += `<div style="font-size:10px;color:var(--muted);padding:4px 0;">No events</div>`;
+  }
+
+  eventsHtml += `<div class="cal-add-row">
+    <input class="cal-add-inp cal-add-time" type="time" id="cal-add-time" placeholder="--:--">
+    <input class="cal-add-inp" type="text" id="cal-add-title" placeholder="Add event..." onkeydown="if(event.key==='Enter')calAddEvent('${_calSelected}')">
+    <button class="btn-sm" onclick="calAddEvent('${_calSelected}')">+</button>
+  </div>
+  <a href="https://calendar.proton.me" target="_blank" class="btn-sm cal-open-btn" style="text-decoration:none;margin-top:6px;">Open Proton Calendar ↗</a>`;
+
+  wrap.innerHTML = `
+    <div class="cal-nav">
+      <button class="cal-nav-btn" onclick="calPrevMonth()">‹</button>
+      <span class="cal-month-label">${monthName}</span>
+      <button class="cal-nav-btn" onclick="calNextMonth()">›</button>
+    </div>
+    ${grid}
+    ${eventsHtml}
+  `;
+}
+
+function calSelectDay(key) {
+  _calSelected = key;
+  renderCalendarWidget();
+}
+
+function calPrevMonth() {
+  const now = new Date();
+  const v   = dashState.calView || { year: now.getFullYear(), month: now.getMonth() };
+  if (v.month === 0) { dashState.calView = { year: v.year-1, month: 11 }; }
+  else               { dashState.calView = { year: v.year,   month: v.month-1 }; }
+  renderCalendarWidget();
+}
+
+function calNextMonth() {
+  const now = new Date();
+  const v   = dashState.calView || { year: now.getFullYear(), month: now.getMonth() };
+  if (v.month === 11) { dashState.calView = { year: v.year+1, month: 0 }; }
+  else                { dashState.calView = { year: v.year,   month: v.month+1 }; }
+  renderCalendarWidget();
+}
+
+// ── RENDER ──
+function render() {
+  const mainEl = document.getElementById('main');
+  const sideEl = document.getElementById('side');
+  mainEl.innerHTML = '';
+  sideEl.innerHTML = '';
+
+  dashState.widgets.forEach(w => {
+    const widget = createWidget(w);
+    if (widget) {
+      (SIDE_WIDGETS.has(w) ? sideEl : mainEl).appendChild(widget);
+    }
+  });
+
+  updateClock();
+}
+
+// ── CREATE WIDGET ──
+function createWidget(type) {
+  const div = document.createElement('div');
+  div.className = 'widget';
+  div.dataset.widget = type;
+  div.draggable = true;
+  div.addEventListener('dragstart', dragStart);
+  div.addEventListener('dragover',  dragOver);
+  div.addEventListener('drop',      dragDrop);
+  div.addEventListener('dragend',   dragEnd);
+
+  const header = document.createElement('div');
+  header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;';
+
+  const title = document.createElement('span');
+  title.className = 'wlabel';
+
+  const dragHandle = document.createElement('div');
+  dragHandle.className = 'widget-drag';
+  dragHandle.innerHTML = '<span></span><span></span><span></span>';
+
+  const removeBtn = document.createElement('button');
+  removeBtn.className = 'widget-rm';
+  removeBtn.textContent = '✕';
+  removeBtn.onclick = () => removeWidget(type);
+
+  header.appendChild(title);
+  header.appendChild(dragHandle);
+  header.appendChild(removeBtn);
+  div.appendChild(header);
+
+  switch (type) {
+
+    case 'focus':
+      title.textContent = "TODAY'S FOCUS";
+      div.innerHTML += `<div class="focus-strip">
+        <label class="focus-lbl">Focus:</label>
+        <input type="text" class="focus-input" id="focus-input" placeholder="What's your focus today?" value="${(dashState.focus||'').replace(/"/g,'&quot;')}">
+      </div>`;
+      setTimeout(() => {
+        const inp = document.getElementById('focus-input');
+        if (inp) inp.oninput = () => { dashState.focus = inp.value; saveState(); };
+      }, 10);
+      break;
+
+    case 'tasks':
+      title.textContent = "TASKS";
+      const taskList = document.createElement('div');
+      taskList.className = 'task-list';
+      dashState.tasks.forEach((task, i) => {
+        const row = document.createElement('div');
+        row.className = 'task-row' + (task.done ? ' done' : '');
+        row.innerHTML = `<input type="checkbox" ${task.done?'checked':''} onchange="toggleTask(${i})">
+          <input type="text" class="task-inp" value="${(task.text||'').replace(/"/g,'&quot;')}" oninput="updateTask(${i},this.value)" placeholder="Task...">
+          <button class="bk-del" style="opacity:0;position:static;" onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity=0" onclick="deleteTask(${i})">✕</button>`;
+        taskList.appendChild(row);
+      });
+      div.appendChild(taskList);
+      const addTaskBtn = document.createElement('button');
+      addTaskBtn.className = 'btn-sm';
+      addTaskBtn.textContent = '+ Add Task';
+      addTaskBtn.onclick = () => { dashState.tasks.push({text:'',done:false}); saveState(); render(); };
+      div.appendChild(addTaskBtn);
+      break;
+
+    case 'notes':
+      title.textContent = "NOTES";
+      const notesWrap = document.createElement('div');
+      notesWrap.innerHTML = `<textarea id="notes-ta" style="width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:var(--font);font-size:12px;line-height:1.65;resize:none;min-height:60px;max-height:200px;" placeholder="Thoughts, tasks, anything..."></textarea>
+        <div class="notes-saved" id="notes-saved"></div>`;
+      div.appendChild(notesWrap);
+      setTimeout(() => {
+        const el = document.getElementById('notes-ta');
+        if (el) {
+          el.value = dashState.notes || '';
+          el.oninput = () => {
+            dashState.notes = el.value;
+            saveState();
+            const s = document.getElementById('notes-saved');
+            if (s) { s.textContent = 'Saved'; clearTimeout(el._t); el._t = setTimeout(()=>{ s.textContent=''; },2000); }
+          };
+        }
+      }, 10);
+      break;
+
+    case 'bookmarks':
+      title.textContent = "BOOKMARKS";
+      const bkShelf = document.createElement('div');
+      bkShelf.className = 'bk-shelf';
+      Object.keys(dashState.bookmarks).forEach(group => {
+        const gDiv = document.createElement('div');
+        const gTtl = document.createElement('div');
+        gTtl.className = 'bk-group-ttl';
+        gTtl.innerHTML = `${group} <button class="bk-group-add" onclick="openBookmarkModal('${group}')">+</button>`;
+        gDiv.appendChild(gTtl);
+        const grid = document.createElement('div');
+        grid.className = 'bk-grid';
+        dashState.bookmarks[group].forEach((bk, i) => {
+          const a = document.createElement('a');
+          a.className = 'bk';
+          a.href = bk.url;
+          a.target = '_blank';
+          a.innerHTML = `<div class="bk-ico"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(bk.url)}&sz=32" onerror="this.parentElement.textContent='${bk.icon}'"></div>
+            <div class="bk-name">${bk.name}</div>
+            <button class="bk-del" onclick="deleteBookmark(event,'${group}',${i})">✕</button>`;
+          grid.appendChild(a);
+        });
+        gDiv.appendChild(grid);
+        bkShelf.appendChild(gDiv);
+      });
+      div.appendChild(bkShelf);
+      break;
+
+    case 'quote':
+      title.textContent = "QUOTE OF THE DAY";
+      const dayN = Math.floor((new Date() - new Date(new Date().getFullYear(),0,0)) / 86400000);
+      const q = QUOTES[dayN % QUOTES.length];
+      const qDiv = document.createElement('div');
+      qDiv.innerHTML = `<div class="quote-text">"${q.text}"</div><div class="quote-author">— ${q.author}</div>`;
+      div.appendChild(qDiv);
+      break;
+
+    case 'deadlines':
+      title.textContent = "UPCOMING DEADLINES";
+      const dlWrap = document.createElement('div');
+      // sort by date ascending before rendering
+      const sorted = [...dashState.deadlines].map((d,i)=>({...d,_i:i})).sort((a,b)=>a.date.localeCompare(b.date));
+      sorted.forEach(item => {
+        const i = item._i;
+        const daysLeft = item.date ? Math.ceil((new Date(item.date+'T00:00:00') - new Date().setHours(0,0,0,0)) / 86400000) : null;
+        const urgency  = daysLeft !== null && daysLeft <= 2 ? 'color:var(--danger)' : daysLeft !== null && daysLeft <= 7 ? 'color:var(--gold)' : '';
+        const dlItem = document.createElement('div');
+        dlItem.style.cssText = 'display:flex;gap:6px;margin-bottom:6px;padding:7px;background:rgba(22,26,36,.7);border-radius:5px;border:1px solid var(--border);align-items:center;';
+        dlItem.innerHTML = `<input type="text" value="${(item.name||'').replace(/"/g,'&quot;')}" oninput="updateDeadlineName(${i},this.value)" placeholder="Deadline name" style="flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:var(--font);font-size:11px;">
+          <input type="date" value="${item.date||''}" onchange="updateDeadlineDate(${i},this.value)" style="background:rgba(22,26,36,.8);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--font);font-size:10px;padding:4px;outline:none;">
+          ${daysLeft !== null ? `<span style="font-size:9px;white-space:nowrap;${urgency}">${daysLeft === 0 ? 'Today' : daysLeft < 0 ? 'Past' : daysLeft+'d'}</span>` : ''}
+          <button class="btn-sm" onclick="deleteDeadline(${i})" title="Remove">✕</button>`;
+        dlWrap.appendChild(dlItem);
+      });
+      div.appendChild(dlWrap);
+      const addDlBtn = document.createElement('button');
+      addDlBtn.className = 'btn-sm';
+      addDlBtn.textContent = '+ Add Deadline';
+      addDlBtn.onclick = () => { dashState.deadlines.push({name:'',date:new Date().toISOString().split('T')[0]}); saveState(); render(); };
+      div.appendChild(addDlBtn);
+      break;
+
+    case 'pomodoro':
+      title.textContent = "POMODORO";
+      const pomDiv = document.createElement('div');
+      pomDiv.className = 'timer-display';
+      pomDiv.innerHTML = `
+        <div class="timer-value" id="timer-display">25:00</div>
+        <div class="timer-label" id="timer-label">Focus</div>
+        <div class="timer-btns">
+          <button class="timer-btn" id="timer-start" onclick="toggleTimer()">Start</button>
+          <button class="timer-btn" onclick="resetTimer()">Reset</button>
+          <button class="timer-btn" onclick="skipTimer()">Skip</button>
+        </div>`;
+      div.appendChild(pomDiv);
+      updateTimerDisplay();
+      break;
+
+    case 'proton':
+      title.textContent = "PROTON QUICK ACCESS";
+      const pDiv = document.createElement('div');
+      pDiv.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:6px;';
+      pDiv.innerHTML = `
+        <a href="https://mail.proton.me" target="_blank" class="btn-sm" style="text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:4px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg> Mail</a>
+        <a href="https://calendar.proton.me" target="_blank" class="btn-sm" style="text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:4px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11z"/></svg> Calendar</a>
+        <a href="https://drive.proton.me" target="_blank" class="btn-sm" style="text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:4px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg> Drive</a>
+        <a href="https://pass.proton.me" target="_blank" class="btn-sm" style="text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:4px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.72-7 8.77V12H5V6.3l7-3.11v8.8z"/></svg> Pass</a>
+        <a href="https://protonvpn.com" target="_blank" class="btn-sm" style="text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:4px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 1C6.48 1 2 5.48 2 11s4.48 10 10 10 10-4.48 10-10S17.52 1 12 1zm-2 15l-5-5 1.41-1.41L10 13.17l7.59-7.59L19 7l-9 9z"/></svg> VPN</a>
+        <a href="https://account.proton.me" target="_blank" class="btn-sm" style="text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:4px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg> Account</a>`;
+      div.appendChild(pDiv);
+      break;
+
+    case 'proton-calendar':
+      title.textContent = "PROTON CALENDAR";
+      const calWrap = document.createElement('div');
+      calWrap.className = 'cal-wrap';
+      calWrap.id = 'cal-inner';
+      div.appendChild(calWrap);
+      // defer so DOM is ready
+      setTimeout(renderCalendarWidget, 0);
+      break;
+
+    default:
+      return null; // unknown widget type — skip it
+  }
+
+  return div;
+}
+
+// ── WIDGET MANAGEMENT ──
+function removeWidget(type) {
+  dashState.widgets = dashState.widgets.filter(w => w !== type);
+  saveState(); render();
+}
+
+function toggleWidgetTray() {
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;';
+  modal.innerHTML = `
+    <div style="background:#12151e;border:1px solid var(--bord2);border-radius:var(--r);padding:24px;width:400px;max-height:80vh;overflow-y:auto;">
+      <h3 style="font-family:var(--serif);font-size:19px;font-weight:300;margin-bottom:16px;">Manage Widgets</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+        ${ALL_WIDGETS.map(w => `
+          <label style="display:flex;align-items:center;gap:8px;padding:8px;background:rgba(22,26,36,.7);border-radius:6px;cursor:pointer;">
+            <input type="checkbox" ${dashState.widgets.includes(w)?'checked':''} onchange="toggleWidgetVisibility('${w}')" style="cursor:pointer;">
+            <span style="font-size:11px;color:var(--text);">${w.replace(/-/g,' ').toUpperCase()}</span>
+          </label>`).join('')}
+      </div>
+      <button onclick="this.closest('div[style]').remove()" style="width:100%;background:var(--acc2);border:1px solid rgba(201,176,122,.4);border-radius:7px;color:var(--accent);font-size:12px;padding:8px;cursor:pointer;font-family:var(--font);font-weight:700;">Done</button>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+function toggleWidgetVisibility(type) {
+  if (dashState.widgets.includes(type)) {
+    dashState.widgets = dashState.widgets.filter(w => w !== type);
+  } else {
+    dashState.widgets.push(type);
+  }
+  saveState(); render();
+}
+
+// ── DRAG & DROP ──
+let _draggedWidget = null;
+
+function dragStart(e) {
+  _draggedWidget = e.currentTarget;
+  e.currentTarget.classList.add('dragging');
+}
+function dragOver(e) {
+  e.preventDefault();
+  e.currentTarget.classList.add('drag-over');
+}
+function dragDrop(e) {
+  e.preventDefault();
+  if (_draggedWidget && _draggedWidget !== e.currentTarget) {
+    const container = e.currentTarget.parentNode;
+    const all = Array.from(container.querySelectorAll('[data-widget]'));
+    if (all.indexOf(_draggedWidget) < all.indexOf(e.currentTarget)) {
+      container.insertBefore(_draggedWidget, e.currentTarget.nextSibling);
+    } else {
+      container.insertBefore(_draggedWidget, e.currentTarget);
+    }
+    const mainW = Array.from(document.getElementById('main').querySelectorAll('[data-widget]')).map(w=>w.dataset.widget);
+    const sideW = Array.from(document.getElementById('side').querySelectorAll('[data-widget]')).map(w=>w.dataset.widget);
+    dashState.widgets = [...mainW, ...sideW];
+    saveState();
+  }
+  e.currentTarget.classList.remove('drag-over');
+}
+function dragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+}
+
+// ── EXPORT / IMPORT ──
+function exportData() {
+  const blob = new Blob([JSON.stringify(dashState, null, 2)], {type:'application/json'});
+  const a = Object.assign(document.createElement('a'), {href:URL.createObjectURL(blob), download:'dashboard-backup.json'});
+  a.click();
+}
+function importData() {
+  const inp = Object.assign(document.createElement('input'), {type:'file', accept:'.json'});
+  inp.onchange = e => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        dashState = JSON.parse(ev.target.result);
+        saveState(); render();
+        alert('✅ Data imported!');
+      } catch { alert('❌ Import failed — invalid JSON'); }
+    };
+    reader.readAsText(e.target.files[0]);
+  };
+  inp.click();
+}
+
+// ── COMMAND PALETTE ──
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && document.activeElement !== document.getElementById('search')) {
+    e.preventDefault();
+    document.getElementById('search').focus();
+  }
+  if (e.ctrlKey && e.key === 'k') {
+    e.preventDefault();
+    const p = document.getElementById('cmd-palette');
+    p.classList.toggle('open');
+    if (p.classList.contains('open')) document.getElementById('cmd-input').focus();
+  }
+  if (e.key === 'Escape') {
+    document.getElementById('cmd-palette').classList.remove('open');
+    document.getElementById('bookmark-modal').classList.remove('open');
+  }
+});
+
+document.getElementById('cmd-input').addEventListener('input', e => {
+  const q   = e.target.value.toLowerCase();
+  const list = document.getElementById('cmd-list');
+  list.innerHTML = '';
+  const commands = [
+    {title:'Export Data',  desc:'Download dashboard backup', action: exportData},
+    {title:'Import Data',  desc:'Restore from backup',       action: importData},
+    {title:'Reset All',    desc:'Clear all saved data',      action: () => { if (confirm('Reset all data?')) { localStorage.clear(); location.reload(); } }},
+    {title:'Open Proton Calendar', desc:'Go to calendar.proton.me', action: () => window.open('https://calendar.proton.me','_blank')},
+  ];
+  commands.filter(c => c.title.toLowerCase().includes(q)).forEach(cmd => {
+    const item = document.createElement('div');
+    item.className = 'cmd-item';
+    item.innerHTML = `<div class="cmd-item-title">${cmd.title}</div><div class="cmd-item-desc">${cmd.desc}</div>`;
+    item.onclick = () => { cmd.action(); document.getElementById('cmd-palette').classList.remove('open'); };
+    list.appendChild(item);
+  });
+});
+
+// ── INIT ──
+loadState();
+updateClock();
+setInterval(updateClock, 1000);
+
+</script>
+</body>
+</html>
