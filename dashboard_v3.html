@@ -294,6 +294,10 @@ body::after { content:''; position:fixed; inset:0; z-index:0; pointer-events:non
 </div>
 
 <script>
+window.onerror = function(msg, src, line, col, err) {
+  document.body.innerHTML = '<div style="font-family:monospace;padding:40px;color:#e8c97a;background:#0d0d0d;min-height:100vh;"><h2>JS Error — please report this</h2><pre>' + msg + ' (line ' + line + ')</pre></div>';
+  return true;
+};
 const QUOTES = [
   {text:"The only way to do great work is to love what you do.", author:"Steve Jobs"},
   {text:"In the middle of every difficulty lies opportunity.", author:"Albert Einstein"},
@@ -357,8 +361,12 @@ function loadState() {
       if (!dashState.calEvents) dashState.calEvents = {};
       if (!dashState.timerState) dashState.timerState = { time:1500, isRunning:false, isBreak:false };
       dashState.timerState.isRunning = false; // never restore a running timer
+      // Remove any stale widget types that no longer exist
+      const validWidgets = new Set(ALL_WIDGETS);
+      dashState.widgets = dashState.widgets.filter(w => validWidgets.has(w));
+      if (!dashState.widgets.length) dashState.widgets = [...ALL_WIDGETS];
     }
-  } catch(e) { console.error('loadState failed', e); }
+  } catch(e) { console.error('loadState failed', e); localStorage.removeItem('dashState'); }
   render();
 }
 
@@ -643,7 +651,7 @@ function createWidget(type) {
 
   switch (type) {
 
-    case 'focus':
+    case 'focus': {
       title.textContent = "TODAY'S FOCUS";
       div.innerHTML += `<div class="focus-strip">
         <label class="focus-lbl">Focus:</label>
@@ -654,8 +662,9 @@ function createWidget(type) {
         if (inp) inp.oninput = () => { dashState.focus = inp.value; saveState(); };
       }, 10);
       break;
+    }
 
-    case 'tasks':
+    case 'tasks': {
       title.textContent = "TASKS";
       const taskList = document.createElement('div');
       taskList.className = 'task-list';
@@ -674,8 +683,9 @@ function createWidget(type) {
       addTaskBtn.onclick = () => { dashState.tasks.push({text:'',done:false}); saveState(); render(); };
       div.appendChild(addTaskBtn);
       break;
+    }
 
-    case 'notes':
+    case 'notes': {
       title.textContent = "NOTES";
       const notesWrap = document.createElement('div');
       notesWrap.innerHTML = `<textarea id="notes-ta" style="width:100%;background:transparent;border:none;outline:none;color:var(--text);font-family:var(--font);font-size:12px;line-height:1.65;resize:none;min-height:60px;max-height:200px;" placeholder="Thoughts, tasks, anything..."></textarea>
@@ -694,8 +704,9 @@ function createWidget(type) {
         }
       }, 10);
       break;
+    }
 
-    case 'bookmarks':
+    case 'bookmarks': {
       title.textContent = "BOOKMARKS";
       const bkShelf = document.createElement('div');
       bkShelf.className = 'bk-shelf';
@@ -722,8 +733,9 @@ function createWidget(type) {
       });
       div.appendChild(bkShelf);
       break;
+    }
 
-    case 'quote':
+    case 'quote': {
       title.textContent = "QUOTE OF THE DAY";
       const dayN = Math.floor((new Date() - new Date(new Date().getFullYear(),0,0)) / 86400000);
       const q = QUOTES[dayN % QUOTES.length];
@@ -731,8 +743,9 @@ function createWidget(type) {
       qDiv.innerHTML = `<div class="quote-text">"${q.text}"</div><div class="quote-author">— ${q.author}</div>`;
       div.appendChild(qDiv);
       break;
+    }
 
-    case 'deadlines':
+    case 'deadlines': {
       title.textContent = "UPCOMING DEADLINES";
       const dlWrap = document.createElement('div');
       // sort by date ascending before rendering
@@ -756,8 +769,9 @@ function createWidget(type) {
       addDlBtn.onclick = () => { dashState.deadlines.push({name:'',date:new Date().toISOString().split('T')[0]}); saveState(); render(); };
       div.appendChild(addDlBtn);
       break;
+    }
 
-    case 'pomodoro':
+    case 'pomodoro': {
       title.textContent = "POMODORO";
       const pomDiv = document.createElement('div');
       pomDiv.className = 'timer-display';
@@ -772,8 +786,9 @@ function createWidget(type) {
       div.appendChild(pomDiv);
       updateTimerDisplay();
       break;
+    }
 
-    case 'proton':
+    case 'proton': {
       title.textContent = "RESEARCH RESOURCES";
       const pDiv = document.createElement('div');
       pDiv.style.cssText = 'display:flex;flex-direction:column;gap:10px;';
@@ -817,8 +832,9 @@ function createWidget(type) {
       });
       div.appendChild(pDiv);
       break;
+    }
 
-    case 'proton-calendar':
+    case 'proton-calendar': {
       title.textContent = "PROTON CALENDAR";
       const calWrap = document.createElement('div');
       calWrap.className = 'cal-wrap';
@@ -827,6 +843,7 @@ function createWidget(type) {
       // defer so DOM is ready
       setTimeout(renderCalendarWidget, 0);
       break;
+    }
 
     default:
       return null; // unknown widget type — skip it
