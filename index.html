@@ -119,7 +119,7 @@ body::after { content:''; position:fixed; inset:0; z-index:0; pointer-events:non
   cursor:grab; opacity:0; transition:opacity .15s;
   padding:2px;
 }
-.widget:hover .widget-drag { opacity:.4; }
+.widget:hover .widget-drag { opacity:.55; }
 .widget-drag:hover { opacity:.8 !important; }
 .widget-drag span { display:block; height:2px; background:var(--muted); border-radius:2px; }
 
@@ -159,9 +159,11 @@ body::after { content:''; position:fixed; inset:0; z-index:0; pointer-events:non
   display:flex; flex-direction:column; align-items:center; gap:4px;
   padding:7px 5px 6px; border-radius:7px;
   background:rgba(20,17,13,.75); border:1px solid var(--border);
-  cursor:pointer; transition:background .18s,border-color .18s,transform .12s;
+  cursor:grab; transition:background .18s,border-color .18s,transform .12s;
   position:relative; user-select:none; text-align:center;
 }
+.bk.dragging-item { opacity:.4; cursor:grabbing; }
+.bk.drop-target { border-color:var(--accent); box-shadow:0 0 0 1px var(--accent); }
 .bk:hover { background:rgba(30,26,20,.9); border-color:var(--bord2); transform:translateY(-1px); }
 .bk-ico { width:28px; height:28px; border-radius:6px; overflow:hidden; display:flex; align-items:center; justify-content:center; background:rgba(30,35,50,.8); }
 .bk-ico img { width:20px; height:20px; display:block; }
@@ -219,28 +221,38 @@ body::after { content:''; position:fixed; inset:0; z-index:0; pointer-events:non
 .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
 .cal-dow { font-size:8px; text-align:center; color:var(--muted); padding:2px 0 4px; letter-spacing:.06em; font-weight:700; }
 .cal-day {
-  font-size:10px; text-align:center; padding:4px 2px; border-radius:4px;
+  font-size:10px; text-align:center; padding:5px 2px; border-radius:4px;
   cursor:pointer; transition:background .12s, color .12s; color:var(--muted); position:relative;
 }
 .cal-day:hover { background:var(--acc2); color:var(--text); }
 .cal-day.today { background:var(--acc2); color:var(--accent); font-weight:700; }
 .cal-day.has-event::after { content:''; display:block; width:3px; height:3px; border-radius:50%; background:var(--gold); margin:1px auto 0; }
 .cal-day.other-month { opacity:.3; }
-.cal-day.selected { background:rgba(126,227,255,.3); color:var(--accent); font-weight:700; }
+.cal-day.selected { background:rgba(232,201,122,.3); color:var(--accent); font-weight:700; }
 .cal-open-btn { display:block; width:100%; margin-top:8px; text-align:center; text-decoration:none; }
-.cal-events { margin-top:8px; display:flex; flex-direction:column; gap:4px; }
-.cal-event-item { display:flex; gap:6px; align-items:center; padding:5px 7px; background:rgba(20,17,13,.6); border-radius:5px; border-left:2px solid var(--gold); }
+.cal-events {
+  margin-top:6px;
+  display:flex; flex-direction:column; gap:4px;
+  /* fixed height for ~3-4 events */
+  height:160px;
+  overflow:hidden;
+}
+.cal-event-item { display:flex; gap:6px; align-items:center; padding:6px 8px; background:rgba(20,17,13,.6); border-radius:5px; border-left:2px solid var(--gold); flex-shrink:0; }
 .cal-event-time { font-size:9px; color:var(--gold); white-space:nowrap; font-family:monospace; }
 .cal-event-title { font-size:10px; color:var(--text); flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .cal-event-del { background:none; border:none; color:var(--muted); font-size:11px; cursor:pointer; opacity:0; transition:opacity .15s; padding:0 2px; }
 .cal-event-item:hover .cal-event-del { opacity:.6; }
 .cal-event-del:hover { color:var(--danger); opacity:1 !important; }
-.cal-add-row { display:flex; gap:4px; margin-top:6px; }
-.cal-add-inp { flex:1; background:rgba(18,15,11,.8); border:1px solid var(--border); border-radius:5px; padding:4px 7px; color:var(--text); font-family:var(--font); font-size:10px; outline:none; }
-.cal-add-inp:focus { border-color:var(--bord2); }
-.cal-add-inp::placeholder { color:var(--muted); }
-.cal-add-time { width:64px; }
-.cal-selected-label { font-size:9px; color:var(--muted); letter-spacing:.1em; text-transform:uppercase; margin-top:8px; margin-bottom:3px; }
+.cal-event-empty { font-size:10px; color:var(--muted); padding:8px 4px; text-align:center; font-style:italic; }
+.cal-event-more { font-size:9px; color:var(--muted); padding:2px 4px; text-align:center; }
+.cal-selected-label { display:flex; justify-content:space-between; align-items:center; font-size:9px; color:var(--muted); letter-spacing:.1em; text-transform:uppercase; margin-top:8px; margin-bottom:4px; }
+.cal-selected-add { background:none; border:1px solid var(--border); color:var(--accent); font-size:14px; cursor:pointer; padding:0 6px; border-radius:4px; line-height:1.4; transition:border-color .15s; }
+.cal-selected-add:hover { border-color:var(--accent); }
+
+/* Style the time input so it shows "Select" when empty */
+input[type="time"].cal-time-styled::-webkit-datetime-edit-fields-wrapper { color:var(--text); }
+input[type="time"].cal-time-styled:invalid::-webkit-datetime-edit-fields-wrapper,
+input[type="time"].cal-time-styled[value=""]::-webkit-datetime-edit-fields-wrapper { color:var(--muted); }
 
 </style>
 </head>
@@ -287,6 +299,34 @@ body::after { content:''; position:fixed; inset:0; z-index:0; pointer-events:non
   </div>
 </div>
 
+<!-- RESEARCH RESOURCE MODAL -->
+<div class="modal-bg" id="research-modal">
+  <div class="modal">
+    <h3>Add Resource</h3>
+    <input type="text" id="res-name" placeholder="Name">
+    <input type="text" id="res-url" placeholder="https://example.com">
+    <input type="text" id="res-group" placeholder="Group (e.g., Academic)">
+    <div style="display:flex; gap:8px;">
+      <button class="btn-primary" onclick="saveResearch()">Save</button>
+      <button class="btn-cancel" onclick="closeResearchModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- CALENDAR EVENT MODAL -->
+<div class="modal-bg" id="calevent-modal">
+  <div class="modal">
+    <h3 id="calevent-modal-title">Add Event</h3>
+    <input type="text" id="calevent-title" placeholder="Event title">
+    <label style="font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;">Time (optional)</label>
+    <input type="time" id="calevent-time">
+    <div style="display:flex; gap:8px;">
+      <button class="btn-primary" onclick="calSaveEventFromModal()">Save</button>
+      <button class="btn-cancel" onclick="closeCalEventModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- COMMAND PALETTE -->
 <div class="cmd-palette" id="cmd-palette">
   <input type="text" class="cmd-input" id="cmd-input" placeholder="Type a command...">
@@ -328,6 +368,27 @@ const DEFAULT_BOOKMARKS = {
   ]
 };
 
+const DEFAULT_RESEARCH = {
+  "Academic": [
+    { name:'Google Scholar',  url:'https://scholar.google.com',         icon:'🎓' },
+    { name:'PubMed',          url:'https://pubmed.ncbi.nlm.nih.gov',    icon:'🧬' },
+    { name:'JSTOR',           url:'https://www.jstor.org',              icon:'📜' },
+    { name:'arXiv',           url:'https://arxiv.org',                  icon:'📐' }
+  ],
+  "Reference": [
+    { name:'Wikipedia',       url:'https://www.wikipedia.org',          icon:'📖' },
+    { name:'Britannica',      url:'https://www.britannica.com',         icon:'🏛️' },
+    { name:'Wolfram Alpha',   url:'https://www.wolframalpha.com',       icon:'🔢' },
+    { name:'Dictionary',      url:'https://www.merriam-webster.com',    icon:'📝' }
+  ],
+  "Tools": [
+    { name:'Zotero',          url:'https://www.zotero.org',             icon:'📚' },
+    { name:'Connected Papers',url:'https://www.connectedpapers.com',    icon:'🕸️' },
+    { name:'Semantic Scholar',url:'https://www.semanticscholar.org',    icon:'🔬' },
+    { name:'Perplexity',      url:'https://www.perplexity.ai',          icon:'🤖' }
+  ]
+};
+
 // ── STATE ──
 // widgets list is the canonical order; side vs main is determined by SIDE_WIDGETS set
 const SIDE_WIDGETS = new Set(['quote','proton-calendar','deadlines','pomodoro','proton']);
@@ -337,6 +398,7 @@ let dashState = {
   widgets: ['focus','tasks','notes','bookmarks','deadlines','pomodoro','proton','quote','proton-calendar'],
   timerState: { time: 1500, isRunning: false, isBreak: false },
   bookmarks: DEFAULT_BOOKMARKS,
+  research: DEFAULT_RESEARCH,
   tasks: [],
   notes: '',
   deadlines: [],
@@ -359,6 +421,7 @@ function loadState() {
       // merge so new keys always exist
       dashState = Object.assign({}, dashState, parsed);
       if (!dashState.calEvents) dashState.calEvents = {};
+      if (!dashState.research)  dashState.research = DEFAULT_RESEARCH;
       if (!dashState.timerState) dashState.timerState = { time:1500, isRunning:false, isBreak:false };
       dashState.timerState.isRunning = false; // never restore a running timer
       // Remove any stale widget types that no longer exist
@@ -472,6 +535,66 @@ function deleteBookmark(e, group, i) {
   saveState(); render();
 }
 
+// ── RESEARCH RESOURCE FUNCTIONS ──
+function deleteResearch(e, group, i) {
+  e.preventDefault(); e.stopPropagation();
+  dashState.research[group].splice(i,1);
+  saveState(); render();
+}
+function openResearchModal(group) {
+  document.getElementById('res-group').value = group;
+  document.getElementById('res-name').value  = '';
+  document.getElementById('res-url').value   = '';
+  document.getElementById('research-modal').classList.add('open');
+}
+function closeResearchModal() {
+  document.getElementById('research-modal').classList.remove('open');
+}
+function saveResearch() {
+  const name  = document.getElementById('res-name').value.trim();
+  const url   = document.getElementById('res-url').value.trim();
+  const group = document.getElementById('res-group').value.trim();
+  if (!name || !url || !group) return;
+  if (!dashState.research[group]) dashState.research[group] = [];
+  dashState.research[group].push({name, url, icon:'🔗'});
+  saveState(); render(); closeResearchModal();
+}
+
+// ── ITEM DRAG-AND-DROP (bookmarks + research) ──
+// Drag info: {kind:'bookmarks'|'research', group, index}
+let _itemDrag = null;
+
+function itemDragStart(e, kind, group, i) {
+  _itemDrag = { kind, group, index: i };
+  e.currentTarget.classList.add('dragging-item');
+  e.stopPropagation();
+  if (e.dataTransfer) { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', 'item'); }
+}
+function itemDragOver(e, kind, group, i) {
+  if (!_itemDrag || _itemDrag.kind !== kind || _itemDrag.group !== group) return;
+  e.preventDefault();
+  e.stopPropagation();
+  e.currentTarget.classList.add('drop-target');
+}
+function itemDragLeave(e) {
+  e.currentTarget.classList.remove('drop-target');
+}
+function itemDrop(e, kind, group, dropIdx) {
+  if (!_itemDrag || _itemDrag.kind !== kind || _itemDrag.group !== group) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const arr = (kind === 'bookmarks' ? dashState.bookmarks : dashState.research)[group];
+  const [moved] = arr.splice(_itemDrag.index, 1);
+  arr.splice(dropIdx, 0, moved);
+  _itemDrag = null;
+  saveState(); render();
+}
+function itemDragEnd(e) {
+  e.currentTarget.classList.remove('dragging-item');
+  document.querySelectorAll('.drop-target').forEach(el => el.classList.remove('drop-target'));
+  _itemDrag = null;
+}
+
 // ── CALENDAR FUNCTIONS ──
 function calDateKey(year, month, day) {
   return `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
@@ -480,17 +603,38 @@ function calTodayKey() {
   const t = new Date();
   return calDateKey(t.getFullYear(), t.getMonth(), t.getDate());
 }
-function calAddEvent(key) {
-  const titleEl = document.getElementById('cal-add-title');
-  const timeEl  = document.getElementById('cal-add-time');
-  const title   = titleEl ? titleEl.value.trim() : '';
-  const time    = timeEl  ? timeEl.value : '';
-  if (!title) return;
-  if (!dashState.calEvents[key]) dashState.calEvents[key] = [];
-  dashState.calEvents[key].push({time, title});
+
+let _calModalKey = null;
+
+function openCalEventModal(key) {
+  _calModalKey = key;
+  const date = new Date(key + 'T00:00:00');
+  document.getElementById('calevent-modal-title').textContent =
+    'Add Event — ' + date.toLocaleDateString('en-US',{weekday:'long', month:'long', day:'numeric'});
+  document.getElementById('calevent-title').value = '';
+  document.getElementById('calevent-time').value  = '';
+  document.getElementById('calevent-modal').classList.add('open');
+  setTimeout(() => document.getElementById('calevent-title').focus(), 50);
+}
+
+function closeCalEventModal() {
+  document.getElementById('calevent-modal').classList.remove('open');
+  _calModalKey = null;
+}
+
+function calSaveEventFromModal() {
+  if (!_calModalKey) return;
+  const title = document.getElementById('calevent-title').value.trim();
+  const time  = document.getElementById('calevent-time').value || '';
+  if (!title) { document.getElementById('calevent-title').focus(); return; }
+  if (!dashState.calEvents[_calModalKey]) dashState.calEvents[_calModalKey] = [];
+  dashState.calEvents[_calModalKey].push({time, title});
   saveState();
+  _calSelected = _calModalKey;
+  closeCalEventModal();
   renderCalendarWidget();
 }
+
 function calDeleteEvent(key, i) {
   dashState.calEvents[key].splice(i,1);
   if (!dashState.calEvents[key].length) delete dashState.calEvents[key];
@@ -507,30 +651,30 @@ function renderCalendarWidget() {
   const todayKey = calTodayKey();
   if (!_calSelected) _calSelected = todayKey;
 
-  const firstDay = new Date(view.year, view.month, 1).getDay();
+  const firstDay    = new Date(view.year, view.month, 1).getDay();
   const daysInMonth = new Date(view.year, view.month + 1, 0).getDate();
   const daysInPrev  = new Date(view.year, view.month, 0).getDate();
-  const monthName = new Date(view.year, view.month).toLocaleDateString('en-US', {month:'long', year:'numeric'});
+  const monthName   = new Date(view.year, view.month).toLocaleDateString('en-US', {month:'long', year:'numeric'});
 
   const dows = ['Su','Mo','Tu','We','Th','Fr','Sa'];
   let grid = `<div class="cal-grid">`;
   dows.forEach(d => { grid += `<div class="cal-dow">${d}</div>`; });
 
-  // prev month padding
+  // prev month padding (also click-to-add)
   for (let i = firstDay - 1; i >= 0; i--) {
     const day = daysInPrev - i;
     const key = calDateKey(view.month === 0 ? view.year-1 : view.year, view.month === 0 ? 11 : view.month-1, day);
-    grid += `<div class="cal-day other-month${dashState.calEvents[key]?.length ? ' has-event':''}">${day}</div>`;
+    grid += `<div class="cal-day other-month${dashState.calEvents[key]?.length ? ' has-event':''}" onclick="calDayClick('${key}')">${day}</div>`;
   }
 
   // current month
   for (let d = 1; d <= daysInMonth; d++) {
     const key = calDateKey(view.year, view.month, d);
     let cls = 'cal-day';
-    if (key === todayKey) cls += ' today';
-    if (key === _calSelected) cls += ' selected';
+    if (key === todayKey)      cls += ' today';
+    if (key === _calSelected)  cls += ' selected';
     if (dashState.calEvents[key]?.length) cls += ' has-event';
-    grid += `<div class="${cls}" onclick="calSelectDay('${key}')">${d}</div>`;
+    grid += `<div class="${cls}" onclick="calDayClick('${key}')">${d}</div>`;
   }
 
   // next month padding
@@ -538,36 +682,47 @@ function renderCalendarWidget() {
   const remainder = total % 7 === 0 ? 0 : 7 - (total % 7);
   for (let d = 1; d <= remainder; d++) {
     const key = calDateKey(view.month === 11 ? view.year+1 : view.year, view.month === 11 ? 0 : view.month+1, d);
-    grid += `<div class="cal-day other-month${dashState.calEvents[key]?.length ? ' has-event':''}">${d}</div>`;
+    grid += `<div class="cal-day other-month${dashState.calEvents[key]?.length ? ' has-event':''}" onclick="calDayClick('${key}')">${d}</div>`;
   }
   grid += `</div>`;
 
-  // selected day events
-  const selEvents = dashState.calEvents[_calSelected] || [];
-  const selDate   = new Date(_calSelected + 'T00:00:00');
-  const selLabel  = selDate.toLocaleDateString('en-US',{weekday:'short', month:'short', day:'numeric'});
+  // selected day events — sort by time, blanks last
+  const selEventsRaw = dashState.calEvents[_calSelected] || [];
+  const selEvents = [...selEventsRaw].map((ev,i)=>({...ev,_i:i})).sort((a,b) => {
+    if (!a.time && !b.time) return 0;
+    if (!a.time) return 1;
+    if (!b.time) return -1;
+    return a.time.localeCompare(b.time);
+  });
+  const selDate  = new Date(_calSelected + 'T00:00:00');
+  const selLabel = selDate.toLocaleDateString('en-US',{weekday:'short', month:'short', day:'numeric'});
 
-  let eventsHtml = `<div class="cal-selected-label">${selLabel}</div>`;
+  let eventsHtml = `<div class="cal-selected-label">
+    <span>${selLabel}</span>
+    <button class="cal-selected-add" onclick="openCalEventModal('${_calSelected}')" title="Add event">+</button>
+  </div>`;
+
   if (selEvents.length) {
+    // Show up to 3 fully; if 4th exists, show as "+N more"
+    const visible = selEvents.slice(0, 3);
+    const extra   = selEvents.length - visible.length;
     eventsHtml += `<div class="cal-events">`;
-    selEvents.forEach((ev, i) => {
+    visible.forEach(ev => {
       eventsHtml += `<div class="cal-event-item">
         <span class="cal-event-time">${ev.time || '—'}</span>
-        <span class="cal-event-title">${ev.title}</span>
-        <button class="cal-event-del" onclick="calDeleteEvent('${_calSelected}',${i})">✕</button>
+        <span class="cal-event-title">${ev.title.replace(/</g,'&lt;')}</span>
+        <button class="cal-event-del" onclick="calDeleteEvent('${_calSelected}',${ev._i})">✕</button>
       </div>`;
     });
+    if (extra > 0) {
+      eventsHtml += `<div class="cal-event-more">+ ${extra} more</div>`;
+    }
     eventsHtml += `</div>`;
   } else {
-    eventsHtml += `<div style="font-size:10px;color:var(--muted);padding:4px 0;">No events</div>`;
+    eventsHtml += `<div class="cal-events"><div class="cal-event-empty">No events — click a day to add one</div></div>`;
   }
 
-  eventsHtml += `<div class="cal-add-row">
-    <input class="cal-add-inp cal-add-time" type="time" id="cal-add-time" placeholder="--:--">
-    <input class="cal-add-inp" type="text" id="cal-add-title" placeholder="Add event..." onkeydown="if(event.key==='Enter')calAddEvent('${_calSelected}')">
-    <button class="btn-sm" onclick="calAddEvent('${_calSelected}')">+</button>
-  </div>
-  <a href="https://calendar.proton.me" target="_blank" class="btn-sm cal-open-btn" style="text-decoration:none;margin-top:6px;">Open Proton Calendar ↗</a>`;
+  eventsHtml += `<a href="https://calendar.proton.me" target="_blank" class="btn-sm cal-open-btn" style="text-decoration:none;margin-top:4px;">Open Proton Calendar ↗</a>`;
 
   wrap.innerHTML = `
     <div class="cal-nav">
@@ -578,6 +733,16 @@ function renderCalendarWidget() {
     ${grid}
     ${eventsHtml}
   `;
+}
+
+// Click on a day: if already selected, open add-event modal. Otherwise just select.
+function calDayClick(key) {
+  if (_calSelected === key) {
+    openCalEventModal(key);
+  } else {
+    _calSelected = key;
+    renderCalendarWidget();
+  }
 }
 
 function calSelectDay(key) {
@@ -623,7 +788,7 @@ function createWidget(type) {
   const div = document.createElement('div');
   div.className = 'widget';
   div.dataset.widget = type;
-  div.draggable = true;
+  div.draggable = false;
   div.addEventListener('dragstart', dragStart);
   div.addEventListener('dragover',  dragOver);
   div.addEventListener('drop',      dragDrop);
@@ -638,6 +803,10 @@ function createWidget(type) {
   const dragHandle = document.createElement('div');
   dragHandle.className = 'widget-drag';
   dragHandle.innerHTML = '<span></span><span></span><span></span>';
+  // Only enable widget drag while pressing the drag handle
+  dragHandle.addEventListener('mousedown', () => { div.draggable = true; });
+  div.addEventListener('dragend',   () => { div.draggable = false; });
+  div.addEventListener('mouseleave', () => { div.draggable = false; });
 
   const removeBtn = document.createElement('button');
   removeBtn.className = 'widget-rm';
@@ -723,6 +892,12 @@ function createWidget(type) {
           a.className = 'bk';
           a.href = bk.url;
           a.target = '_blank';
+          a.draggable = true;
+          a.addEventListener('dragstart', e => itemDragStart(e, 'bookmarks', group, i));
+          a.addEventListener('dragover',  e => itemDragOver(e,  'bookmarks', group, i));
+          a.addEventListener('dragleave', itemDragLeave);
+          a.addEventListener('drop',      e => itemDrop(e,      'bookmarks', group, i));
+          a.addEventListener('dragend',   itemDragEnd);
           a.innerHTML = `<div class="bk-ico"><img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(bk.url)}&sz=32" onerror="this.parentElement.textContent='${bk.icon}'"></div>
             <div class="bk-name">${bk.name}</div>
             <button class="bk-del" onclick="deleteBookmark(event,'${group}',${i})">✕</button>`;
@@ -755,11 +930,11 @@ function createWidget(type) {
         const daysLeft = item.date ? Math.ceil((new Date(item.date+'T00:00:00') - new Date().setHours(0,0,0,0)) / 86400000) : null;
         const urgency  = daysLeft !== null && daysLeft <= 2 ? 'color:var(--danger)' : daysLeft !== null && daysLeft <= 7 ? 'color:var(--gold)' : '';
         const dlItem = document.createElement('div');
-        dlItem.style.cssText = 'display:flex;gap:6px;margin-bottom:6px;padding:7px;background:rgba(20,17,13,.75);border-radius:5px;border:1px solid var(--border);align-items:center;';
-        dlItem.innerHTML = `<input type="text" value="${(item.name||'').replace(/"/g,'&quot;')}" oninput="updateDeadlineName(${i},this.value)" placeholder="Deadline name" style="flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:var(--font);font-size:11px;">
-          <input type="date" value="${item.date||''}" onchange="updateDeadlineDate(${i},this.value)" style="background:rgba(18,15,11,.8);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--font);font-size:10px;padding:4px;outline:none;">
+        dlItem.style.cssText = 'display:flex;gap:6px;margin-bottom:6px;padding:7px;background:rgba(20,17,13,.75);border-radius:5px;border:1px solid var(--border);align-items:center;flex-wrap:wrap;';
+        dlItem.innerHTML = `<input type="text" value="${(item.name||'').replace(/"/g,'&quot;')}" oninput="updateDeadlineName(${i},this.value)" placeholder="Deadline name" style="flex:1 1 100%;background:transparent;border:none;outline:none;color:var(--text);font-family:var(--font);font-size:11px;min-width:0;">
+          <input type="date" value="${item.date||''}" onchange="updateDeadlineDate(${i},this.value)" style="flex:1;background:rgba(18,15,11,.8);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--font);font-size:10px;padding:4px;outline:none;min-width:0;">
           ${daysLeft !== null ? `<span style="font-size:9px;white-space:nowrap;${urgency}">${daysLeft === 0 ? 'Today' : daysLeft < 0 ? 'Past' : daysLeft+'d'}</span>` : ''}
-          <button class="btn-sm" onclick="deleteDeadline(${i})" title="Remove">✕</button>`;
+          <button class="btn-sm" onclick="deleteDeadline(${i})" title="Remove" style="flex-shrink:0;">✕</button>`;
         dlWrap.appendChild(dlItem);
       });
       div.appendChild(dlWrap);
@@ -792,40 +967,29 @@ function createWidget(type) {
       title.textContent = "RESEARCH RESOURCES";
       const pDiv = document.createElement('div');
       pDiv.style.cssText = 'display:flex;flex-direction:column;gap:10px;';
-      const researchGroups = {
-        'Academic': [
-          {name:'Google Scholar', url:'https://scholar.google.com', icon:'🎓'},
-          {name:'PubMed', url:'https://pubmed.ncbi.nlm.nih.gov', icon:'🧬'},
-          {name:'JSTOR', url:'https://www.jstor.org', icon:'📜'},
-          {name:'arXiv', url:'https://arxiv.org', icon:'📐'},
-        ],
-        'Reference': [
-          {name:'Wikipedia', url:'https://www.wikipedia.org', icon:'📖'},
-          {name:'Britannica', url:'https://www.britannica.com', icon:'🏛️'},
-          {name:'Wolfram Alpha', url:'https://www.wolframalpha.com', icon:'🔢'},
-          {name:'Dictionary', url:'https://www.merriam-webster.com', icon:'📝'},
-        ],
-        'Tools': [
-          {name:'Zotero', url:'https://www.zotero.org', icon:'📚'},
-          {name:'Connected Papers', url:'https://www.connectedpapers.com', icon:'🕸️'},
-          {name:'Semantic Scholar', url:'https://www.semanticscholar.org', icon:'🔬'},
-          {name:'Perplexity', url:'https://www.perplexity.ai', icon:'🤖'},
-        ],
-      };
-      Object.entries(researchGroups).forEach(([group, items]) => {
+      Object.keys(dashState.research).forEach(group => {
         const gLabel = document.createElement('div');
-        gLabel.style.cssText = 'font-size:9px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;font-weight:800;margin-bottom:4px;';
-        gLabel.textContent = group;
+        gLabel.className = 'bk-group-ttl';
+        gLabel.innerHTML = `${group} <button class="bk-group-add" onclick="openResearchModal('${group}')">+</button>`;
         pDiv.appendChild(gLabel);
         const grid = document.createElement('div');
         grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:2px;';
-        items.forEach(item => {
+        dashState.research[group].forEach((item, i) => {
           const a = document.createElement('a');
           a.href = item.url;
           a.target = '_blank';
           a.className = 'btn-sm';
-          a.style.cssText = 'text-decoration:none;display:flex;align-items:center;gap:5px;padding:5px 8px;';
-          a.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(item.url)}&sz=16" width="13" height="13" onerror="this.outerHTML='${item.icon}'" style="flex-shrink:0;"> ${item.name}`;
+          a.draggable = true;
+          a.style.cssText = 'text-decoration:none;display:flex;align-items:center;gap:5px;padding:5px 8px;position:relative;cursor:grab;';
+          a.addEventListener('dragstart', e => itemDragStart(e, 'research', group, i));
+          a.addEventListener('dragover',  e => itemDragOver(e,  'research', group, i));
+          a.addEventListener('dragleave', itemDragLeave);
+          a.addEventListener('drop',      e => itemDrop(e,      'research', group, i));
+          a.addEventListener('dragend',   itemDragEnd);
+          a.innerHTML = `<img src="https://www.google.com/s2/favicons?domain=${encodeURIComponent(item.url)}&sz=16" width="13" height="13" onerror="this.outerHTML='${item.icon}'" style="flex-shrink:0;"> <span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${item.name}</span>
+            <button class="bk-del" style="position:static;opacity:0;padding:0 2px;" onmouseenter="this.style.opacity=1" onmouseleave="this.style.opacity=0" onclick="deleteResearch(event,'${group}',${i})">✕</button>`;
+          a.addEventListener('mouseenter', () => { const x = a.querySelector('.bk-del'); if (x) x.style.opacity = '0.6'; });
+          a.addEventListener('mouseleave', () => { const x = a.querySelector('.bk-del'); if (x) x.style.opacity = '0'; });
           grid.appendChild(a);
         });
         pDiv.appendChild(grid);
@@ -955,6 +1119,8 @@ document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     document.getElementById('cmd-palette').classList.remove('open');
     document.getElementById('bookmark-modal').classList.remove('open');
+    document.getElementById('research-modal').classList.remove('open');
+    document.getElementById('calevent-modal').classList.remove('open');
   }
 });
 
